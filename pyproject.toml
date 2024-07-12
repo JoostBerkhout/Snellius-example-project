@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "Snellius example project"
+version = "0.1.0"
+description = "Contains an example how to work with Snellius and some existing code."
+authors = ["Joost Berkhout <joost.berkhout@vu.nl>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pre-commit = "^3.7.1"
+
+[tool.black]
+line-length = 80
+
+[tool.ruff]
+line-length = 80
+select = ["E", "F", "I", "NPY", "RET", "RSE", "RUF", "SLF", "SIM", "TCH"]
+
+[tool.ruff.isort]
+case-sensitive = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
