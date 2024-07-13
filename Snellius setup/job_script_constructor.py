@@ -9,6 +9,8 @@ from constants import (
     JOB_SCRIPT_NAME,
     MAX_CORES_PER_NODE,
     PARTITION_NAME,
+    PYTHON_CMD,
+    USE_SCRATCH,
 )
 
 # get project name by looking up the name of grandfather folder
@@ -31,8 +33,29 @@ seconds = est_total_time_secs % 60
 total_time_format = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
 
 # Job script template
+if USE_SCRATCH:
+    scratch_dir = f'scratch_dir="$TMPDIR/{project_name}"\n'
+    working_dir = "$scratch_dir"
+    copy_to_scratch = (
+        "# Copy source folder to scratch \n" 'cp -r "$base_dir" "$TMPDIR" \n\n'
+    )
+    copy_from_scratch = (
+        "# Copy results back to base_dir \n"
+        'cp -r "$results_folder" "$base_dir"'
+    )
+    poetry_setting = (
+        f"# Ensure right Python version is used in Poetry \n"
+        f"poetry env use {PYTHON_CMD} \n\n"
+    )
+else:
+    scratch_dir = ""
+    working_dir = "$base_dir"
+    copy_to_scratch = ""
+    copy_from_scratch = ""
+    poetry_setting = ""
 args = (
-    '"$base_dir/run_experiment.py" "$instance" ' '"$method" "$results_folder"'
+    f'"{working_dir}/run_experiment.py" "$instance" '
+    '"$method" "$results_folder"'
 )
 job_script_template = f"""#!/bin/bash
 # Set job requirements
@@ -43,17 +66,18 @@ job_script_template = f"""#!/bin/bash
 #SBATCH --time={total_time_format}
 #SBATCH --mail-type=BEGIN,END
 #SBATCH --mail-user={EMAIL}
+#SBATCH --output="slurm-%j.out"
 
 # Create some variables
 base_dir="$HOME/{project_name}"
-results_folder="$base_dir/$(date +"results %d-%m-%Y %H-%M-%S")"
-experiments_settings="$base_dir/{EXPERIMENTS_SETTINGS_NAME}"
+{scratch_dir}results_folder="{working_dir}/$(date +"results %d-%m-%Y %H-%M-%S")"
+experiments_settings="{working_dir}/{EXPERIMENTS_SETTINGS_NAME}"
 
-# Move to base directory and create results folder
-cd "$base_dir"
+{copy_to_scratch}# Move to working directory and create results folder
+cd "{working_dir}"
 mkdir -p "$results_folder"
 
-instances=$(jq -r '.instances[]' "$experiments_settings")
+{poetry_setting}instances=$(jq -r '.instances[]' "$experiments_settings")
 methods=$(jq -r '."methods"[]' "$experiments_settings")
 
 while read -r instance; do
@@ -62,9 +86,11 @@ while read -r instance; do
     done <<< "$methods"
 done <<< "$instances"
 wait
+
+{copy_from_scratch}
 """
 
-# Write job script to file
+# write job script to file
 with open(f"../{JOB_SCRIPT_NAME}", "w", newline="\n") as f:
     f.write(job_script_template)
 

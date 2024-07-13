@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Contains an example how to work with Snellius and some existing code."
 authors = ["Joost Berkhout <joost.berkhout@vu.nl>"]
 readme = "README.md"
-package-mode = false
+package-mode = false  # on Snellius, the poetry version installed does not accept this line, if so, remove this line
 
 [tool.poetry.dependencies]
 python = "^3.9"

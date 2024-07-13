@@ -44,7 +44,11 @@ The steps to run the experiments are as follows:
    method 2//results.json`.
 5. Copy the project to Snellius and navigate to the project's root folder. 
    Ensure that poetry is installed on Snellius and run `poetry install` in 
-   case the project does not have an own environment yet. 
+   case the project does not have an own environment yet. You might get an 
+   error when running `poetry install` that states: ``Additional properties 
+   are not allowed ('package-mode' was unexpected)''. In that case, comment 
+   the line `package-mode = true` in the `pyproject.toml` file, remove the 
+   lock file and run `poetry install` again.
 6. Run the job script `job_script_Snellius.sh` on Snellius using command 
    `sbatch job_script_Snellius.sh` (ensure that you are in the root folder 
    of the project). 

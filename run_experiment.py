@@ -3,6 +3,7 @@
 import json
 import os
 import sys
+import time
 
 # add the 'src' directory to the PYTHONPATH first (ugly, but ensures you can
 # directly import modules within the 'src' directory directly, i.e.,
@@ -17,7 +18,7 @@ from src.methods import MAPPING_METHODS
 from src.run_method import run_method
 
 
-def run_experiment(instance, method, settings, results_loc):
+def run_experiment(instance, method, settings, results_loc, verbose=True):
     """
     Runs experiment for instance with method and given settings.
 
@@ -31,12 +32,18 @@ def run_experiment(instance, method, settings, results_loc):
         Dictionary with settings.
     results_loc : str
         Path to the folder where the experiment results should be stored.
+    verbose : bool
+        If True, print progress (including some timing for experimentation).
 
     Returns
     -------
     None
 
     """
+
+    if verbose:
+        start_time = time.time()
+        print(f"Running experiment for {instance} with {method}")
 
     # init
     results = []
@@ -48,12 +55,25 @@ def run_experiment(instance, method, settings, results_loc):
         result = run_method(instance_fun(seed), method_fun, settings)
         results.append(result)
 
+    if verbose:
+        start_time_saving = time.time()
+
     # save results in a folder results_loc\method\problem_instance
     results_folder = os.path.join(results_loc, method, instance)
     os.makedirs(results_folder, exist_ok=True)
     results_path = os.path.join(results_folder, "results.json")
     with open(results_path, "w") as f:
         json.dump(results, f, indent=4)
+
+    if verbose:
+        # print durations
+        cur_time = time.time()
+        duration = cur_time - start_time
+        duration_saving = cur_time - start_time_saving
+        print(
+            f"Experiment for {instance} with {method} took {duration:.4f} secs"
+            f" (saving took {duration_saving:.4f} secs)"
+        )
 
 
 def main():
