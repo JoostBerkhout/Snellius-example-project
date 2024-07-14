@@ -2,12 +2,13 @@
 
 In this example project you find a way to conduct experiments on Snellius 
 of the following type: We have different (problem) instances on which we 
-want to try different methods (if one wants to apply the same method with 
-different settings, then just add extra methods with these different settings).
-In particular, for each instance we want to run each method and store the 
-results. All experiment runs are independent of each other, so we can run them 
-in parallel. The idea is that this code can be used as a template for conducting
-experiments on Snellius.
+want to try different methods. In particular, for each instance we want to 
+run each method and store the results. All experiment runs are independent 
+of each other, so we can run them in parallel. 
+
+The idea is that this code can be used as a simple template for conducting 
+experiments on Snellius. It stores the used .sh script and experiment 
+settings in the results folder for reproducibility.
 
 ## Overview of project structure
 
@@ -29,7 +30,9 @@ The steps to run the experiments are as follows:
    in the project's root folder. To that end, one can use `Snellius 
    setup\experiments_settings_constructor.py` which will create 
    `experiments_settings.json` in the project's root folder. Alternatively, one 
-   can create `experiments_settings.json` manually.
+   can create `experiments_settings.json` manually. But I think it is most 
+   convenient to change `Snellius
+   setup\experiments_settings_constructor.py` to your needs and run it.
 2. Create a `job_script_Snellius.sh` job script file in the project's root 
    folder. To that end, one can use `Snellius setup\job_script_constructor.
    py`. Alternatively, one can create `job_script_Snellius.sh` manually. 
@@ -64,98 +67,115 @@ Here's a detailed explanation of the provided shell script:
 ```
 #!/bin/bash
 # Set job requirements
-#SBATCH --job-name=Snellius_design
+#SBATCH --job-name=Snellius_example_project
+#SBATCH --partition=rome
 #SBATCH --nodes=1
-#SBATCH --ntasks=9
-#SBATCH --time=00:07:12
+#SBATCH --ntasks=128
+#SBATCH --time=00:10:40
 #SBATCH --mail-type=BEGIN,END
 #SBATCH --mail-user=joost.berkhout@vu.nl
+#SBATCH --output="slurm-%j.out"
 
 # Create some variables
-base_dir="$HOME/Snellius design"
-results_folder="$base_dir/$(date +"Results %d-%m-%Y %H-%M-%S")"
+base_dir="$HOME/Snellius example project"
+results_folder="$base_dir/$(date +"results %d-%m-%Y %H-%M-%S")"
 experiments_settings="$base_dir/experiments_settings.json"
+
+# Move to working directory and create results folder
+cd "$base_dir"
+mkdir -p "$results_folder"
+
 instances=$(jq -r '.instances[]' "$experiments_settings")
 methods=$(jq -r '."methods"[]' "$experiments_settings")
 
-echo "Start test"
 while read -r instance; do
     while read -r method; do
-        echo "$instance"
-        echo "$method"
+        srun --ntasks=1 --nodes=1 --cpus-per-task=1 poetry run python "$base_dir/run_experiment.py" "$instance" "$method" "$results_folder" &
     done <<< "$methods"
 done <<< "$instances"
-echo "End test"
+wait
 ```
 
 ### Line-by-line Breakdown
 
-1. **`#!/bin/bash`**
-    - Shebang line indicating that the script should be run using the Bash shell.
+```markdown
+```bash
+#!/bin/bash
+```
+- This line specifies the script should be run using the Bash shell.
 
-2. **`# Set job requirements`**
-    - A comment explaining that the following lines set job requirements.
+```bash
+# Set job requirements
+#SBATCH --job-name=Snellius_example_project
+```
+- Specifies the name of the job as `Snellius_example_project`.
 
-3. **`#SBATCH --job-name=Snellius_design`**
-    - Sets the name of the job to "Snellius_design".
+```bash
+#SBATCH --partition=rome
+```
+- Specifies the partition (queue) to submit the job to, in this case, `rome`.
 
-4. **`#SBATCH --nodes=1`**
-    - Requests 1 node for the job.
+```bash
+#SBATCH --nodes=1
+```
+- Requests 1 compute node for the job.
 
-5. **`#SBATCH --ntasks=9`**
-    - Requests 9 tasks for the job.
+```bash
+#SBATCH --ntasks=128
+```
+- Requests 128 tasks for the job, usually corresponding to the number of CPU cores.
 
-6. **`#SBATCH --time=00:07:12`**
-    - Sets the maximum runtime of the job to 7 minutes and 12 seconds.
+```bash
+#SBATCH --time=00:10:40
+```
+- Sets a time limit of 10 minutes and 40 seconds for the job.
 
-7. **`#SBATCH --mail-type=BEGIN,END`**
-    - Requests email notifications when the job begins and ends.
+```bash
+#SBATCH --mail-type=BEGIN,END
+```
+- Requests email notifications when the job begins and ends.
 
-8. **`#SBATCH --mail-user=joost.berkhout@vu.nl`**
-    - Sets the email address for job notifications.
+```bash
+#SBATCH --mail-user=joost.berkhout@vu.nl
+```
+- Specifies the email address to send notifications to.
 
-9. **`# Create some variables`**
-    - A comment indicating the start of variable definitions.
+```bash
+#SBATCH --output="slurm-%j.out"
+```
+- Sets the name of the output file for the job's standard output, where `%j` is replaced by the job ID.
 
-10. **`base_dir="$HOME/Snellius design"`**
-    - Sets the base directory to the "Snellius design" folder in the user's home directory.
+```bash
+# Create some variables
+base_dir="$HOME/Snellius example project"
+results_folder="$base_dir/$(date +"results %d-%m-%Y %H-%M-%S")"
+experiments_settings="$base_dir/experiments_settings.json"
+```
+- Defines variables: `base_dir` for the project's base directory, `results_folder` for the results directory with a timestamp, and `experiments_settings` for the path to the JSON settings file.
 
-11. **`results_folder="$base_dir/$(date +"Results %d-%m-%Y %H-%M-%S")"`**
-    - Sets the results folder path, including a timestamp.
+```bash
+# Move to working directory and create results folder
+cd "$base_dir"
+mkdir -p "$results_folder"
+```
+- Changes the current directory to `base_dir` and creates the `results_folder` if it doesn't exist.
 
-12. **`experiments_settings="$base_dir/experiments_settings.json"`**
-    - Sets the path to the `experiments_settings.json` file.
+```bash
+instances=$(jq -r '.instances[]' "$experiments_settings")
+methods=$(jq -r '."methods"[]' "$experiments_settings")
+```
+- Uses `jq` to parse `experiments_settings.json` and extract lists of instances and methods.
 
-13. **`instances=$(jq -r '.instances[]' "$experiments_settings")`**
-    - Uses `jq` to extract each element from the `instances` array in the JSON file and assigns them to the `instances` variable.
+```bash
+while read -r instance; do
+    while read -r method; do
+        srun --ntasks=1 --nodes=1 --cpus-per-task=1 poetry run python "$base_dir/run_experiment.py" "$instance" "$method" "$results_folder" &
+    done <<< "$methods"
+done <<< "$instances"
+wait
+```
+- Iterates over each instance and method, running `run_experiment.py` with `srun` in parallel for each combination. The `wait` command ensures the script waits for all background tasks to complete before finishing.
 
-14. **`methods=$(jq -r '."methods"[]' "$experiments_settings")`**
-    - Uses `jq` to extract each element from the `"methods"` array in the JSON file and assigns them to the `methods` variable.
-
-15. **`echo "Start test"`**
-    - Prints "Start test" to the console.
-
-16. **`while read -r instance; do`**
-    - Starts a `while` loop that reads each line of the `instances` variable one by one, assigning the current line to the variable `instance`.
-    - **`read -r`**: Reads a line of input, preserving the backslashes (using `-r`).
-
-17. **`    while read -r method; do`**
-    - Inside the first `while` loop, starts another `while` loop that reads each line of the `methods` variable one by one, assigning the current line to the variable `method`.
-
-18. **`        echo "$instance"`**
-    - Inside the nested `while` loop, prints the current `instance`.
-
-19. **`        echo "$method"`**
-    - Inside the nested `while` loop, prints the current `method`.
-
-20. **`    done <<< "$methods"`**
-    - Feeds the contents of the `methods` variable to the inner `while` loop using here-strings.
-
-21. **`done <<< "$instances"`**
-    - Feeds the contents of the `instances` variable to the outer `while` loop using here-strings.
-
-22. **`echo "End test"`**
-    - Prints "End test" to the console.
 
 ### Explanation of the Flow
 
@@ -163,33 +183,6 @@ echo "End test"
 2. It uses `jq` to extract the `instances` and `methods` arrays from the JSON file.
 3. The script starts the outer `while` loop, iterating over each `instance`.
 4. For each `instance`, it starts the inner `while` loop, iterating over each `method`.
-5. For each pair of `instance` and `method`, it prints their values.
+5. For each pair of `instance` and `method`, it runs the experiment.
 6. The nested loops ensure that every combination of `instance` and `method` is processed.
 7. The script prints "End test" after processing all combinations.
-
-### Expected Output
-
-Given that there are 3 instances and 3 methods, the script will print the combination of each instance and method, resulting in 9 pairs:
-
-```
-Start test
-instance 1
-method 1
-instance 1
-method 2 1
-instance 1
-method 3
-instance 2
-method 1
-instance 2
-method 2 1
-instance 2
-method 3
-instance 3
-method 1
-instance 3
-method 2 1
-instance 3
-method 3
-End test
-```

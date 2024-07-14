@@ -32,7 +32,7 @@ minutes = (est_total_time_secs % 3600) // 60
 seconds = est_total_time_secs % 60
 total_time_format = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
 
-# Job script template
+# define job script (helper) variables
 if USE_SCRATCH:
     scratch_dir = f'scratch_dir="$TMPDIR/{project_name}"\n'
     working_dir = "$scratch_dir"
@@ -57,6 +57,8 @@ args = (
     f'"{working_dir}/run_experiment.py" "$instance" '
     '"$method" "$results_folder"'
 )
+
+# define job script template
 job_script_template = f"""#!/bin/bash
 # Set job requirements
 #SBATCH --job-name={project_name.replace(' ', '_')}

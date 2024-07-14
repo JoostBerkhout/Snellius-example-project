@@ -111,7 +111,7 @@ def main():
 
     # find all .sh files in current folder
     sh_files = [f for f in os.listdir(".") if f.endswith(".sh")]
-    assert len(sh_files) == 1, "Only one .sh file in the current folder"
+    assert len(sh_files) == 1, "Ensure that only 1 sh file is in current folder"
     job_script_name = sh_files[0]
 
     # save a copy of .sh file in the results folder
