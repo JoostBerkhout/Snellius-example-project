@@ -14,13 +14,15 @@ settings in the results folder for reproducibility.
 
 The project structure is as follows:
 
-- `Snellius setup\\`: Folder with scripts to set up the experiments on Snellius.
 - `src\\`: Folder with project source code to be run on Snellius.
 - `experiments_settings.json`: Contains the settings of the experiments.
 - `job_script_Snellius.sh`: Contains the job script to run the experiments 
   on Snellius.
 - `run_experiment.py`: Contains the code to run each experiment in parallel.
 - `README.md`: Contains the documentation of the project.
+- `Snellius setup\\`: Folder with optional scripts to construct 
+  `job_script_Snellius.sh` and `experiments_settings.json` and place them in 
+  the root.
 
 ## What steps are needed to run the experiments?
 
@@ -29,15 +31,11 @@ The steps to run the experiments are as follows:
 1. Create an `experiments_settings.json` file with the experiments settings 
    in the project's root folder. To that end, one can use `Snellius 
    setup\experiments_settings_constructor.py` which will create 
-   `experiments_settings.json` in the project's root folder. Alternatively, one 
-   can create `experiments_settings.json` manually. But I think it is most 
-   convenient to change `Snellius
-   setup\experiments_settings_constructor.py` to your needs and run it.
+   `experiments_settings.json` in the project's root folder. 
 2. Create a `job_script_Snellius.sh` job script file in the project's root 
    folder. To that end, one can use `Snellius setup\job_script_constructor.
-   py`. Alternatively, one can create `job_script_Snellius.sh` manually. 
-   Important: there should be an `experiments_settings.json` file in the 
-   same folder as `job_script_Snellius.sh` (so perform first step 1). 
+   py` that requires that there exists an `experiments_settings.json` 
+   file in the root (so perform first step 1). 
 3. Place your code in the `src` folder and ensure `run_experiment.py` has 
    correct access to it. 
 4. It is a good idea to test the code locally regarding `run_experiment.py` 
@@ -47,11 +45,7 @@ The steps to run the experiments are as follows:
    method 2//results.json`.
 5. Copy the project to Snellius and navigate to the project's root folder. 
    Ensure that poetry is installed on Snellius and run `poetry install` in 
-   case the project does not have an own environment yet. You might get an 
-   error when running `poetry install` that states: ``Additional properties 
-   are not allowed ('package-mode' was unexpected)''. In that case, comment 
-   the line `package-mode = true` in the `pyproject.toml` file, remove the 
-   lock file and run `poetry install` again.
+   case the project does not have an own environment yet. 
 6. Run the job script `job_script_Snellius.sh` on Snellius using command 
    `sbatch job_script_Snellius.sh` (ensure that you are in the root folder 
    of the project). 
