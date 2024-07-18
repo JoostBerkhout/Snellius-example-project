@@ -129,5 +129,4 @@ venv.bak/
 *.DS_Store
 Experiments/Results/
 *.ipynb
-*.json
 *.tmp

@@ -1,0 +1,33 @@
+{
+    "# repetitions": 3,
+    "generic parameter 1": 4000,
+    "generic parameter 2": 20,
+    "generic parameter 3": 23,
+    "methods": [
+        "method 1",
+        "method 2",
+        "method 3",
+        "method 4",
+        "method 5",
+        "method 6",
+        "method 7",
+        "method 8",
+        "method 9",
+        "method 10"
+    ],
+    "instances": [
+        "instance 1",
+        "instance 2",
+        "instance 3",
+        "instance 4",
+        "instance 5",
+        "instance 6",
+        "instance 7",
+        "instance 8",
+        "instance 9",
+        "instance 10",
+        "instance 11",
+        "instance 12",
+        "instance 13"
+    ]
+}
