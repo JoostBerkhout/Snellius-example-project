@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-
+import argparse
 import json
 import os
 import sys
@@ -76,20 +76,46 @@ def run_experiment(instance, method, settings, results_loc, verbose=True):
         )
 
 
+def parse_arguments():
+    """Parse the arguments for the script."""
+
+    # initialize the parser
+    parser = argparse.ArgumentParser(
+        description="Run an experiment with the specified instance and method, "
+        "saving the results in the specified folder. Ensure that "
+        "there is a single JSON file in the current folder with "
+        "experiment settings."
+    )
+
+    # add arguments
+    parser.add_argument(
+        "instance_name",
+        type=str,
+        help="Name of the instance to use for the experiment.",
+    )
+    parser.add_argument(
+        "method_name",
+        type=str,
+        help="Name of the method to apply in the experiment.",
+    )
+    parser.add_argument(
+        "results_folder",
+        type=str,
+        help="Folder to save the results of the experiment.",
+    )
+
+    return parser.parse_args()
+
+
 def main():
 
-    # read command-line arguments
-    if len(sys.argv) != 4:
-        print(
-            "Usage: python run_experiment.py "
-            "<instance_name> <method_name> <results_folder> (and ensure that"
-            " there is a single json file in the current folder with"
-            " experiments settings and one .sh Snellius job script file)"
-        )
-        sys.exit(1)
-    instance = sys.argv[1]
-    method = sys.argv[2]
-    results_folder = sys.argv[3]
+    # parse the arguments
+    args = parse_arguments()
+
+    # assign the parsed arguments to variables
+    instance = args.instance_name
+    method = args.method_name
+    results_folder = args.results_folder
 
     # create results directory if it does not exist
     if not os.path.exists(results_folder):
